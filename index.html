@@ -1887,6 +1887,7 @@
     clearTimeout(winTimer);
     cancelExec();
     hint = null; hintPlan = null; hintToken++; hideToast();
+    updateHintBtn();
     var base = LEVELS[i];
     rotated = wantRotate(base);
     var rows = rotated ? rotateRows(base) : base;
@@ -2444,23 +2445,27 @@
     if (t) t.style.display = 'none';
   }
   // İpucu bekleme süresi: bölüm aralığına göre (dk)
-  var hintReadyAt = 0;
-  try { hintReadyAt = parseInt(localStorage.getItem('depo-hint-ready') || '0', 10) || 0; } catch (e) {}
-  function cooldownMin(n) {
-    if (n <= 5) return 1;
-    if (n <= 50) return 5;
-    if (n <= 100) return 10;
-    if (n <= 150) return 30;
-    return 60;
+  var hintReady = {};   // grup no -> ipucunun tekrar açılacağı zaman (ms)
+  try { hintReady = JSON.parse(localStorage.getItem('depo-hint-ready-v2') || '{}') || {}; } catch (e) { hintReady = {}; }
+  function hintGroup(n) {
+    if (n <= 5) return 0;
+    if (n <= 50) return 1;
+    if (n <= 100) return 2;
+    if (n <= 150) return 3;
+    return 4;
   }
-  function cooldownLeftMs() { return Math.max(0, hintReadyAt - Date.now()); }
+  var GROUP_MIN = [1, 5, 10, 30, 60];
+  function cooldownLeftMs() {
+    return Math.max(0, (hintReady[hintGroup(cur + 1)] || 0) - Date.now());
+  }
   function updateHintBtn() {
     var b = document.getElementById('hintBtn');
     if (b) b.style.opacity = cooldownLeftMs() > 0 ? '0.45' : '';
   }
   function startCooldown() {
-    hintReadyAt = Date.now() + cooldownMin(cur + 1) * 60000;
-    try { localStorage.setItem('depo-hint-ready', String(hintReadyAt)); } catch (e) {}
+    var g = hintGroup(cur + 1);
+    hintReady[g] = Date.now() + GROUP_MIN[g] * 60000;
+    try { localStorage.setItem('depo-hint-ready-v2', JSON.stringify(hintReady)); } catch (e) {}
     updateHintBtn();
   }
   setInterval(updateHintBtn, 1000);
