@@ -139,15 +139,6 @@
     border-left: 1px solid var(--line); border-top: 1px solid var(--line);
     transform: rotate(45deg);
   }
-  #start {
-    position: fixed; inset: 0; z-index: 30; display: none;
-    flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-    background-color: var(--top);
-    background-image: radial-gradient(90% 50% at 50% 55%, var(--bg1), transparent 100%);
-  }
-  #start svg { width: 84px; height: 84px; filter: drop-shadow(0 6px 12px rgba(0,0,0,.35)); }
-  #start h2 { margin: 0; font-family: "Barlow Condensed", "Arial Narrow", Impact, sans-serif; font-size: 44px; letter-spacing: .06em; }
-  #start .primary { height: 54px; padding: 0 44px; font-size: 18px; }
   #toast {
     position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%);
     display: none; z-index: 5; pointer-events: none;
@@ -395,12 +386,6 @@
 </footer>
 
 <div id="hintNote" role="status"></div>
-
-<div id="start">
-  <svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="crateB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfaa62"/><stop offset="1" stop-color="#bf8232"/></linearGradient></defs><rect x="2" y="2" width="28" height="28" rx="3" fill="url(#crateB)"/><path d="M2 11.3h28M2 20.7h28" stroke="#96641f" stroke-width=".7"/><path d="M6 6L26 26M26 6L6 26" stroke="#7a4f18" stroke-width="3" stroke-linecap="round"/><rect x="3.6" y="3.6" width="24.8" height="24.8" rx="2" fill="none" stroke="#7a4f18" stroke-width="2.6"/><g fill="#f3deb6"><circle cx="5.9" cy="5.9" r=".95"/><circle cx="26.1" cy="5.9" r=".95"/><circle cx="5.9" cy="26.1" r=".95"/><circle cx="26.1" cy="26.1" r=".95"/></g></svg>
-  <h2>DEPO</h2>
-  <button class="primary" id="startBtn" type="button">Oyna</button>
-</div>
 
 <div id="picker" role="dialog" aria-label="Bölüm seç">
   <div class="sheet">
@@ -2806,20 +2791,6 @@
     document.addEventListener('keydown', auto, true);
     document.addEventListener('fullscreenchange', sync);
     document.addEventListener('webkitfullscreenchange', sync);
-  })();
-
-  // ---------- Açılış ekranı: tam ekran ve/veya ses için ilk dokunuş ----------
-  (function () {
-    var startEl = document.getElementById('start'), btn = document.getElementById('startBtn');
-    if (!startEl || !btn) return;
-    var needFs = !!(fsApi && fsApi.want());
-    if (!needFs && !soundOn) return;
-    startEl.style.display = 'flex';
-    btn.addEventListener('click', function () {
-      startEl.style.display = 'none';
-      unlockAudio();
-      if (fsApi && fsApi.want()) fsApi.enter();
-    });
   })();
 
 
