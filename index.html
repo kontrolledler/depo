@@ -124,17 +124,18 @@
     line-height: 1.1;
   }
   .ibtn { min-width: 38px !important; padding: 5px 6px !important; }
+  #hintWrap { position: relative; }
   #hintNote {
-    position: fixed; display: none; z-index: 20; pointer-events: none;
+    position: absolute; top: calc(100% + 10px); right: 0; display: none; z-index: 20; pointer-events: none;
     background: var(--panel); color: var(--ink);
     border: 1px solid var(--line); border-radius: 12px;
-    padding: 7px 12px; white-space: normal; text-align: left;
-    max-width: min(260px, calc(100vw - 24px));
-    font: 600 13px/1.25 "Barlow", system-ui, sans-serif;
+    padding: 7px 12px; white-space: nowrap; text-align: left;
+    max-width: calc(100vw - 24px); width: max-content;
+    font: 600 clamp(11px, 3.4vw, 13px)/1.25 "Barlow", system-ui, sans-serif;
     box-shadow: 0 6px 20px rgba(0,0,0,.3);
   }
   #hintNote::before {
-    content: ""; position: absolute; top: -6px; right: var(--ax, 16px);
+    content: ""; position: absolute; top: -6px; right: 16px;
     width: 10px; height: 10px; background: var(--panel);
     border-left: 1px solid var(--line); border-top: 1px solid var(--line);
     transform: rotate(45deg);
@@ -335,8 +336,7 @@
 <body>
 <header>
   <div class="brand">
-    <svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="crateA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfaa62"/><stop offset="1" stop-color="#bf8232"/></linearGradient></defs><rect x="2" y="2" width="28" height="28" rx="3" fill="url(#crateA)"/><path d="M2 11.3h28M2 20.7h28" stroke="#96641f" stroke-width=".7"/><path d="M6 6L26 26M26 6L6 26" stroke="#7a4f18" stroke-width="3" stroke-linecap="round"/><rect x="3.6" y="3.6" width="24.8" height="24.8" rx="2" fill="none" stroke="#7a4f18" stroke-width="2.6"/><g fill="#f3deb6"><circle cx="5.9" cy="5.9" r=".95"/><circle cx="26.1" cy="5.9" r=".95"/><circle cx="5.9" cy="26.1" r=".95"/><circle cx="26.1" cy="26.1" r=".95"/></g></svg>
-    <div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <h1>DEPO</h1>
       <div style="display:flex;align-items:center;gap:6px"><button id="lvl" class="lvlbtn" type="button" aria-haspopup="dialog">Bölüm 1 / 155</button><button id="fsBtn" class="lvlbtn" type="button" style="display:none" aria-label="Tam ekran">⛶</button></div>
     </div>
@@ -344,9 +344,12 @@
   <div class="stats">
     <div class="pill"><span>Hamle</span><b id="moves">0</b></div>
     <div class="pill"><span>En iyi</span><b id="best">–</b></div>
-    <button id="hintBtn" class="pill ibtn" style="cursor:pointer;display:flex;align-items:center;justify-content:center" aria-label="İpucu">
-      <svg class="i" viewBox="0 0 24 24" style="width:20px;height:20px;margin:0"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>
-    </button>
+    <div id="hintWrap">
+      <button id="hintBtn" class="pill ibtn" style="cursor:pointer;display:flex;align-items:center;justify-content:center" aria-label="İpucu">
+        <svg class="i" viewBox="0 0 24 24" style="width:20px;height:20px;margin:0"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>
+      </button>
+      <div id="hintNote" role="status"></div>
+    </div>
     <button id="soundBtn" class="pill ibtn" style="cursor:pointer;display:flex;align-items:center;justify-content:center" aria-pressed="false" aria-label="Sesi aç/kapat">
       <svg class="i" id="soundIcon" viewBox="0 0 24 24" style="width:20px;height:20px;margin:0"><path d="M4 9v6h4l5 5V4L8 9H4z"/><line x1="17" y1="9" x2="22" y2="14"/><line x1="22" y1="9" x2="17" y2="14"/></svg>
     </button>
@@ -385,7 +388,6 @@
   </div>
 </footer>
 
-<div id="hintNote" role="status"></div>
 
 <div id="picker" role="dialog" aria-label="Bölüm seç">
   <div class="sheet">
@@ -2453,13 +2455,9 @@
     if (n) n.style.display = 'none';
   }
   function showHintNote(msg, ms) {
-    var n = document.getElementById('hintNote'), b = document.getElementById('hintBtn');
-    var r = b.getBoundingClientRect();
+    var n = document.getElementById('hintNote');
     n.textContent = msg;
     n.style.display = 'block';
-    n.style.top = (r.bottom + 10) + 'px';
-    n.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
-    n.style.setProperty('--ax', Math.max(6, r.width / 2 - 5) + 'px');
     clearTimeout(hintNoteTimer);
     if (ms !== 0) hintNoteTimer = setTimeout(function () { n.style.display = 'none'; }, ms || 3000);
   }
@@ -2631,7 +2629,7 @@
         for (a = 0; a < bs.length; a++) occ[bs[a]] = 0;
       }
       if (!heap.length) { done(null, 'none'); return; }
-      if (best.size > 1500000 || performance.now() - tStart > (WGT > 3 ? 12000 : 8000)) { done(null, 'timeout'); return; }
+      if (best.size > 1500000 || performance.now() - tStart > (WGT > 3 ? 18000 : 8000)) { done(null, 'timeout'); return; }
       setTimeout(tick, 0);
     }
     tick();
@@ -2689,7 +2687,7 @@
         if (tok !== hintToken) return;
         if (!plan && why === 'timeout' && !retried) {
           retried = true;
-          showHintNote('Daha derin arıyorum…', 0);
+          showHintNote('Derinlemesine araştırılıyor…', 0);
           setTimeout(function () { hintSolve(tok, onDone, 10); }, 30);
           return;
         }
