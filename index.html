@@ -1934,7 +1934,7 @@
       floorMask[py][px] = true;
       stack.push([px + 1, py], [px - 1, py], [px, py + 1], [px, py - 1]);
     }
-    history = []; moves = 0; solved = false; facing = [0, 1];
+    history = []; moves = 0; solved = false; facing = [0, 1]; interacted = false;
     vp = player.slice();
     vb = boxes.map(function (b) { return b.slice(); });
     pulses = boxes.map(function () { return -1e9; });
@@ -1949,6 +1949,7 @@
     return -1;
   }
 
+  var interacted = false;
   function move(dx, dy) {
     if (solved) return;
     facing = [dx, dy];
@@ -1956,6 +1957,7 @@
     if (walls[ny][nx]) { sfxBlocked(); kick(); return; }
     var bi = boxAt(nx, ny);
     var snap = { p: player.slice(), b: boxes.map(function (b) { return b.slice(); }) };
+    interacted = true;
     if (bi >= 0) {
       var bx = nx + dx, by = ny + dy;
       if (walls[by][bx] || boxAt(bx, by) >= 0) { sfxBlocked(); kick(); return; }
@@ -2784,7 +2786,14 @@
     });
     // İlk dokunuşta tam ekrana geç; sistem hareketiyle çıkılırsa sonraki dokunuşta tekrar girer.
     // Düğmeyle kapatırsan (pref = off) kendiliğinden girmez.
-    function auto() { if (pref === 'on' && !isFs()) enter(); }
+    // En fazla 1,5 saniyede bir dener: hızlı art arda dokunuşlar (örn. Geri al'a hızlı basmak)
+    // tam ekran isteğini tekrar tekrar tetiklemesin — bazı tarayıcılarda bu, gereksiz yere
+    // sayfa düzenini sarsabiliyor.
+    var lastAuto = 0;
+    function auto() {
+      var now = Date.now();
+      if (pref === 'on' && !isFs() && now - lastAuto > 1500) { lastAuto = now; enter(); }
+    }
     document.addEventListener('pointerup', auto, true);
     document.addEventListener('keydown', auto, true);
     document.addEventListener('fullscreenchange', sync);
@@ -2879,18 +2888,25 @@
   undoBtn.addEventListener('click', undo);
   document.getElementById('reset').addEventListener('click', function () { loadLevel(cur); });
 
+  // Cihaz gerçekten döndürülünce bölümü yeniden yerleştir; tablet gezinme çubuğunun
+  // açılıp kapanması, klavye açılması ya da ufak yeniden boyutlanmalar (hızlı dokunuşlarda
+  // olabiliyor) burada SAYILMAZ — onlar sadece görünümü tazeler, bölümü sıfırlamaz.
+  var portraitQuery = window.matchMedia && window.matchMedia('(orientation: portrait)');
+  var lastPortrait = portraitQuery ? portraitQuery.matches : (window.innerHeight >= window.innerWidth);
   var relayoutRaf = 0;
   function relayout() {
     if (relayoutRaf) return;
     relayoutRaf = requestAnimationFrame(function () {
       relayoutRaf = 0;
-      if (!history.length && wantRotate(LEVELS[cur]) !== rotated) loadLevel(cur);
+      var nowPortrait = portraitQuery ? portraitQuery.matches : (window.innerHeight >= window.innerWidth);
+      var flipped = nowPortrait !== lastPortrait;
+      lastPortrait = nowPortrait;
+      if (flipped && !interacted && wantRotate(LEVELS[cur]) !== rotated) loadLevel(cur);
       else resize();
     });
   }
   window.addEventListener('resize', relayout);
   window.addEventListener('orientationchange', relayout);
-  if (window.ResizeObserver) new ResizeObserver(relayout).observe(document.getElementById('stage'));
   if (window.matchMedia) {
     var mq = window.matchMedia('(prefers-color-scheme: dark)');
     if (mq.addEventListener) mq.addEventListener('change', rebuild);
