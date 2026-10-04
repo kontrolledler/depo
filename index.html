@@ -113,18 +113,20 @@
     line-height: 1;
   }
   .brand small { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); font-weight: 500; }
-  .stats { display: flex; gap: 6px; flex: none; }
+  .stats { display: flex; align-items: stretch; gap: 6px; flex: none; }
   .pill {
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 12px;
     padding: 5px 8px;
     min-width: 50px;
+    box-sizing: border-box;
     text-align: center;
     line-height: 1.1;
   }
-  .ibtn { min-width: 38px !important; padding: 5px 6px !important; }
-  #hintWrap { position: relative; }
+  .ibtn { min-width: 38px !important; padding: 5px 6px !important; box-sizing: border-box; }
+  #hintWrap { position: relative; align-self: stretch; display: flex; }
+  #hintWrap #hintBtn { flex: 1; }
   #hintNote {
     position: absolute; top: calc(100% + 10px); right: 0; display: none; z-index: 20; pointer-events: none;
     background: var(--panel); color: var(--ink);
@@ -151,7 +153,7 @@
   .pill span { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
   .pill b {
     font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
   }
@@ -296,7 +298,7 @@
     padding: 6px 16px 14px;
     gap: 12px;
   }
-  .actions { display: flex; flex-direction: column; gap: 26px; }
+  .actions { display: flex; flex-direction: column; justify-content: space-between; height: 106px; }
   .actions button {
     display: flex; align-items: center; gap: 8px;
     height: 44px;
@@ -1976,8 +1978,12 @@
     if (boxes.every(function (b) { return goals[b[1]][b[0]]; })) win();
   }
 
+  var lastUndoAt = -1e9;
   function undo() {
     if (solved || !history.length) return;
+    var now = performance.now();
+    if (now - lastUndoAt < 70) return; // dokunmatik ekran titremesi / çift tetiklemeye karşı
+    lastUndoAt = now;
     var s = history.pop();
     player = s.p; boxes = s.b; moves = Math.max(0, moves - 1);
     pulses = boxes.map(function () { return -1e9; });
