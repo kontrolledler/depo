@@ -1984,6 +1984,7 @@
     var now = performance.now();
     if (now - lastUndoAt < 70) return; // dokunmatik ekran titremesi / çift tetiklemeye karşı
     lastUndoAt = now;
+    cancelExec(); // arka planda sürükleme kuyruğu çalışıyorsa durdur, geri alma ile çakışmasın
     var s = history.pop();
     player = s.p; boxes = s.b; moves = Math.max(0, moves - 1);
     pulses = boxes.map(function () { return -1e9; });
